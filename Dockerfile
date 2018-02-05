@@ -1,5 +1,7 @@
 FROM tensorflow/tensorflow:latest-gpu
 
+ENV LANG=C.UTF-8 LC_ALL=C.UTF-8
+
 RUN apt-get update && apt-get install -y --no-install-recommends \
         build-essential \
         git \
