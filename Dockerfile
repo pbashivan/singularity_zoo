@@ -14,5 +14,5 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         && rm -rf /var/lib/apt/lists/*
 
 # Set the timezone.
-RUN sudo echo "America/New_York" > /etc/timezone
-RUN sudo dpkg-reconfigure -f noninteractive tzdata
+RUN echo "America/New_York" > /etc/timezone
+RUN dpkg-reconfigure -f noninteractive tzdata
