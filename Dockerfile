@@ -16,3 +16,5 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Set the timezone.
 RUN echo "America/New_York" > /etc/timezone
 RUN dpkg-reconfigure -f noninteractive tzdata
+
+ENV TZ=America/New_York
