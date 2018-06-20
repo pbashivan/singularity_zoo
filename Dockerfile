@@ -11,6 +11,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 	ssh \
         wget \
 	tzdata \
+	gcc gfortran libopenmpi-dev openmpi-bin openmpi-common openmpi-doc binutils \
         && rm -rf /var/lib/apt/lists/*
 
 # Set the timezone.
