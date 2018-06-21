@@ -21,6 +21,7 @@ WORKDIR openmpi-1.8.1
 RUN ./configure --prefix=/usr/local
 RUN make all install
 
+ENV LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
 # libopenmpi-dev openmpi-bin openmpi-common openmpi-doc
 
 # Set the timezone.
