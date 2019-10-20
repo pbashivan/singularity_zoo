@@ -12,7 +12,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     wget \
 	tzdata \
 	gcc gfortran binutils \
-	xvfb libav-tools xorg-dev libsdl2-dev swig cmake\
+	xvfb ffmpeg xorg-dev libsdl2-dev swig cmake\
     && rm -rf /var/lib/apt/lists/*
 
 # Set the timezone.
