@@ -1,6 +1,8 @@
 FROM tensorflow/tensorflow:1.14.0-gpu-py3
 # Takes care of hdf5 error
 ENV LANG=C.UTF-8 LC_ALL=C.UTF-8
+ENV TZ=America/New_York
+ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
         build-essential \
