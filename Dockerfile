@@ -50,7 +50,7 @@ ENV LD_LIBRARY_PATH /usr/local/nvidia/lib64:${LD_LIBRARY_PATH}
 # RUN chmod +x /usr/local/bin/Xdummy
 
 # Workaround for https://bugs.launchpad.net/ubuntu/+source/nvidia-graphics-drivers-375/+bug/1674677
-COPY ./vendor/10_nvidia.json /usr/share/glvnd/egl_vendor.d/10_nvidia.json
+# COPY ./vendor/10_nvidia.json /usr/share/glvnd/egl_vendor.d/10_nvidia.json
 
 # WORKDIR /mujoco_py
 # Copy over just requirements.txt at first. That way, the Docker cache doesn't
