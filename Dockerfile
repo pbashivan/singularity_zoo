@@ -46,8 +46,8 @@ RUN mkdir -p /root/.mujoco \
 ENV LD_LIBRARY_PATH /root/.mujoco/mujoco200/bin:${LD_LIBRARY_PATH}
 ENV LD_LIBRARY_PATH /usr/local/nvidia/lib64:${LD_LIBRARY_PATH}
 
-COPY vendor/Xdummy /usr/local/bin/Xdummy
-RUN chmod +x /usr/local/bin/Xdummy
+# COPY vendor/Xdummy /usr/local/bin/Xdummy
+# RUN chmod +x /usr/local/bin/Xdummy
 
 # Workaround for https://bugs.launchpad.net/ubuntu/+source/nvidia-graphics-drivers-375/+bug/1674677
 COPY ./vendor/10_nvidia.json /usr/share/glvnd/egl_vendor.d/10_nvidia.json
