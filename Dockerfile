@@ -1,67 +1,83 @@
-# We need the CUDA base dockerfile to enable GPU rendering
-# on hosts with GPUs.
-# The image below is a pinned version of nvidia/cuda:9.1-cudnn7-devel-ubuntu16.04 (from Jan 2018)
-# If updating the base image, be sure to test on GPU since it has broken in the past.
-FROM nvidia/cuda@sha256:4df157f2afde1cb6077a191104ab134ed4b2fd62927f27b69d788e8e79a45fa1
+FROM ubuntu:18.04
 
-RUN apt-get update -q \
-    && DEBIAN_FRONTEND=noninteractive apt-get install -y \
+# Install dependencies.
+# g++ (v. 5.4) does not work: https://github.com/tensorflow/tensorflow/issues/13308
+RUN apt-get update && apt-get install -y \
     curl \
-    git \
-    libgl1-mesa-dev \
-    libgl1-mesa-glx \
-    libglew-dev \
-    libosmesa6-dev \
-    software-properties-common \
-    net-tools \
+    zip \
     unzip \
-    vim \
-    virtualenv \
-    wget \
-    xpra \
-    xserver-xorg-dev \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
+    software-properties-common \
+    pkg-config \
+    g++-4.8 \
+    zlib1g-dev \
+    python \
+    lua5.1 \
+    liblua5.1-0-dev \
+    libffi-dev \
+    gettext \
+    freeglut3 \
+    libsdl2-dev \
+    libosmesa6-dev \
+    libglu1-mesa \
+    libglu1-mesa-dev \
+    python-dev \
+    build-essential \
+    git \
+    python-setuptools \
+    python-pip \
+    libjpeg-dev
 
-RUN DEBIAN_FRONTEND=noninteractive add-apt-repository --yes ppa:deadsnakes/ppa && apt-get update
-RUN DEBIAN_FRONTEND=noninteractive apt-get install --yes python3.6-dev python3.6 python3-pip
-RUN virtualenv --python=python3.6 env
+# Install bazel
+RUN echo "deb [arch=amd64] http://storage.googleapis.com/bazel-apt stable jdk1.8" | \
+    tee /etc/apt/sources.list.d/bazel.list && \
+    curl https://bazel.build/bazel-release.pub.gpg | \
+    apt-key add - && \
+    apt-get update && apt-get install -y bazel
 
-RUN rm /usr/bin/python
-RUN ln -s /env/bin/python3.6 /usr/bin/python
-RUN ln -s /env/bin/pip3.6 /usr/bin/pip
-RUN ln -s /env/bin/pytest /usr/bin/pytest
+# Install TensorFlow and other dependencies
+RUN pip install tensorflow==1.9.0 dm-sonnet==1.23
 
-RUN curl -o /usr/local/bin/patchelf https://s3-us-west-2.amazonaws.com/openai-sci-artifacts/manual-builds/patchelf_0.9_amd64.elf \
-    && chmod +x /usr/local/bin/patchelf
+# Build and install DeepMind Lab pip package.
+# We explicitly set the Numpy path as shown here:
+# https://github.com/deepmind/lab/blob/master/docs/users/build.md
+RUN NP_INC="$(python -c 'import numpy as np; print(np.get_include())[5:]')" && \
+    git clone https://github.com/deepmind/lab.git && \
+    cd lab && \
+    sed -i 's@hdrs = glob(\[@hdrs = glob(["'"$NP_INC"'/\*\*/*.h", @g' python.BUILD && \
+    sed -i 's@includes = \[@includes = ["'"$NP_INC"'", @g' python.BUILD && \
+    bazel build -c opt python/pip_package:build_pip_package && \
+    pip install wheel && \
+    ./bazel-bin/python/pip_package/build_pip_package /tmp/dmlab_pkg && \
+    pip install /tmp/dmlab_pkg/DeepMind_Lab-1.0-py2-none-any.whl --force-reinstall
 
-ENV LANG C.UTF-8
+# Install dataset (from https://github.com/deepmind/lab/tree/master/data/brady_konkle_oliva2008)
+RUN mkdir dataset && \
+    cd dataset && \
+    pip install Pillow && \
+    curl -sS https://raw.githubusercontent.com/deepmind/lab/master/data/brady_konkle_oliva2008/README.md | \
+    tr '\n' '\r' | \
+    sed -e 's/.*```sh\(.*\)```.*/\1/' | \
+    tr '\r' '\n' | \
+    bash
 
-RUN mkdir -p /root/.mujoco \
-    && wget https://www.roboti.us/download/mujoco200_linux.zip -O mujoco.zip \
-    && unzip mujoco.zip -d /root/.mujoco \
-    && mv /root/.mujoco/mujoco200_linux /root/.mujoco/mujoco200 \
-    && rm mujoco.zip
-# COPY ./mjkey.txt /root/.mujoco/
-ENV LD_LIBRARY_PATH /root/.mujoco/mujoco200/bin:${LD_LIBRARY_PATH}
-ENV LD_LIBRARY_PATH /usr/local/nvidia/lib64:${LD_LIBRARY_PATH}
+# Clone.
+RUN git clone https://github.com/deepmind/scalable_agent.git
+WORKDIR scalable_agent
 
-# COPY vendor/Xdummy /usr/local/bin/Xdummy
-# RUN chmod +x /usr/local/bin/Xdummy
+# Build dynamic batching module.
+RUN TF_INC="$(python -c 'import tensorflow as tf; print(tf.sysconfig.get_include())')" && \
+    TF_LIB="$(python -c 'import tensorflow as tf; print(tf.sysconfig.get_lib())')" && \
+    g++-4.8 -std=c++11 -shared batcher.cc -o batcher.so -fPIC -I $TF_INC -O2 -D_GLIBCXX_USE_CXX11_ABI=0 -L$TF_LIB -ltensorflow_framework
 
-# Workaround for https://bugs.launchpad.net/ubuntu/+source/nvidia-graphics-drivers-375/+bug/1674677
-# COPY ./vendor/10_nvidia.json /usr/share/glvnd/egl_vendor.d/10_nvidia.json
+# Run tests.
+RUN python py_process_test.py
+RUN python dynamic_batching_test.py
+RUN python vtrace_test.py
 
-# WORKDIR /mujoco_py
-# Copy over just requirements.txt at first. That way, the Docker cache doesn't
-# expire until we actually change the requirements.
-# COPY ./requirements.txt /mujoco_py/
-# COPY ./requirements.dev.txt /mujoco_py/
-# RUN pip install --no-cache-dir -r requirements.txt
-# RUN pip install --no-cache-dir -r requirements.dev.txt
+# Run.
+CMD ["sh", "-c", "python experiment.py --total_environment_frames=10000 --dataset_path=../dataset && python experiment.py --mode=test --test_num_episodes=5"]
 
-# Delay moving in the entire code until the very end.
-# ENTRYPOINT ["/mujoco_py/vendor/Xdummy-entrypoint"]
-# CMD ["pytest"]
-# COPY . /mujoco_py
-# RUN python setup.py install
+# Docker commands:
+#   docker rm scalable_agent -v
+#   docker build -t scalable_agent .
+#   docker run --name scalable_agent scalable_agent
