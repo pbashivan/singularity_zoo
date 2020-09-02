@@ -24,8 +24,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # RUN rm Miniconda3-latest-Linux-x86_64.sh
 
 # Updating Anaconda packages
-RUN conda update conda
-RUN conda update anaconda
+#RUN conda update conda
+#RUN conda update anaconda
 RUN conda update --all
 
 RUN mkdir /temp
