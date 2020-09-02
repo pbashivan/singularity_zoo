@@ -17,6 +17,17 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 	xvfb ffmpeg xorg-dev libsdl2-dev swig cmake\
     && rm -rf /var/lib/apt/lists/*
 
+# Anaconda installing
+
+RUN wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
+RUN bash Anaconda3-5.0.1-Linux-x86_64.sh -b
+RUN rm Miniconda3-latest-Linux-x86_64.sh
+
+# Updating Anaconda packages
+RUN conda update conda
+RUN conda update anaconda
+RUN conda update --all
+
 # Set the timezone.
 RUN echo "America/New_York" > /etc/timezone
 RUN dpkg-reconfigure -f noninteractive tzdata
