@@ -5,7 +5,7 @@ ENV TZ=America/New_York
 ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
-        build-essential ldconfig \
+        build-essential \
         git \
         python-dev \
         python-pip \
