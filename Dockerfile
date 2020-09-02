@@ -38,7 +38,7 @@ RUN conda install -c anaconda protobuf --yes
 RUN ./scripts/install_grpc.sh
 RUN pip install nest/
 RUN export LD_LIBRARY_PATH=${CONDA_PREFIX:-"$(dirname $(which conda))/../"}/lib:${LD_LIBRARY_PATH}
-RUN python setup.py install
+#RUN python setup.py install
 
 # Set the timezone.
 RUN echo "America/New_York" > /etc/timezone
