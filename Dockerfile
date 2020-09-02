@@ -41,7 +41,7 @@ RUN pip install tensorflow==1.9.0 dm-sonnet==1.23
 # We explicitly set the Numpy path as shown here:
 # https://github.com/deepmind/lab/blob/master/docs/users/build.md
 RUN NP_INC="$(python -c 'import numpy as np; print(np.get_include())[5:]')" && \
-    git clone https://github.com/deepmind/lab.git && \
+    git clone https://github.com/deepmind/lab.git --branch release-2019-02-04 && \
     cd lab && \
     sed -i 's@hdrs = glob(\[@hdrs = glob(["'"$NP_INC"'/\*\*/*.h", @g' python.BUILD && \
     sed -i 's@includes = \[@includes = ["'"$NP_INC"'", @g' python.BUILD && \
