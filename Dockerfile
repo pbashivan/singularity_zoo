@@ -33,12 +33,12 @@ WORKDIR /temp
 RUN git clone https://github.com/facebookresearch/torchbeast.git
 WORKDIR /temp/torchbeast
 RUN pip install -r requirements.txt
-# RUN git submodule update --init --recursive
-# RUN conda install -c anaconda protobuf --yes
-# RUN ./scripts/install_grpc.sh
-# RUN pip install nest/
-# RUN export LD_LIBRARY_PATH=${CONDA_PREFIX:-"$(dirname $(which conda))/../"}/lib:${LD_LIBRARY_PATH}
-# RUN python setup.py install
+RUN git submodule update --init --recursive
+RUN conda install -c anaconda protobuf --yes
+RUN ./scripts/install_grpc.sh
+RUN pip install nest/
+RUN export LD_LIBRARY_PATH=${CONDA_PREFIX:-"$(dirname $(which conda))/../"}/lib:${LD_LIBRARY_PATH}
+RUN python setup.py install
 
 # Set the timezone.
 RUN echo "America/New_York" > /etc/timezone
